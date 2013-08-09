@@ -1,0 +1,15 @@
+{
+    "name": "famelo/vodoo",
+    "authors": [
+        {
+            "name": "Marc Neuhaus",
+            "email": "apocalip@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-0": {
+            "Famelo\\Vodoo\\": ""
+        }
+    }
+}
