@@ -4,23 +4,33 @@ namespace Famelo\Vodoo\Traits;
 trait GettersSetters {
 
 	public function __call($name,$arguments) {
-		if(count($arguments)>0){
+		if (count($arguments) > 0) {
 			$value = $arguments[0];
 		}
 
 		switch (true) {
 			// Magic Setter Function: setProperty($value) sets $this->property = $value;
-			case substr($name,0,3) == "set":
-				$this->_set($name,$value);
+			case substr($name, 0, 3) == "get":
+				return $this->_get($name);
 				break;
 
 			// Magic Setter Function: getProperty() return $this->property
-			case substr($name,0,3) == "add":
-				$this->_add($name,$value);
+			case substr($name, 0, 3) == "has":
+				return $this->_has($name);
+				break;
+
+			// Magic Setter Function: setProperty($value) sets $this->property = $value;
+			case substr($name, 0, 3) == "set":
+				$this->_set($name, $value);
+				break;
+
+			// Magic Setter Function: getProperty() return $this->property
+			case substr($name, 0, 3) == "add":
+				$this->_add($name, $value);
 				break;
 
 			case substr($name,0,6) == "remove":
-				return $this->_remove($name,$value);
+				return $this->_remove($name, $value);
 				break;
 
 			default:
@@ -29,7 +39,7 @@ trait GettersSetters {
 		}
 	}
 
-	public function _set($name,$value){
+	public function _set($name, $value){
 		$property = $this->getPropertyName(substr($name,3));
 		if($property === false)
 			throw new \Exception('The Property '.$property.' you are trying to set isn\'t defined in this class '.get_class($this).".");
@@ -52,7 +62,8 @@ trait GettersSetters {
 			$path = implode(".", $parts) ;
 			return \TYPO3\Flow\Reflection\ObjectAccess::getPropertyPath($this->$name, $path);
 		}else{
-			$property = $this->getPropertyName(substr($name,3));
+			$property = $this->getPropertyName(substr($name, 3));
+
 			if($property === false)
 				throw new \Exception('The Property '.$property.' you are trying to get isn\'t defined in this class.');
 			if ($this->$property instanceof \TYPO3\Flow\Persistence\LazyLoadingProxy) {
@@ -63,15 +74,18 @@ trait GettersSetters {
 	}
 
 	public function _add($name, $value){
-		$model = $this->getModelName();
 		$property = $this->getPropertyName(substr($name, 3));
 
 		if(!property_exists(get_class($this),$property))
 			throw new \Exception('The Property '.$property.' you are trying to add isn\'t defined in this class.');
-		array_push($this->$property, $value);
+		if ($this->$property instanceof \Doctrine\ODM\MongoDB\PersistentCollection) {
+			$this->$property->add($value);
+		} else {
+			array_push($this->$property, $value);
+		}
 	}
 
-	public function _has($name,$value){
+	public function _has($name, $value){
 		$property = $this->getPropertyName(substr($name,3));
 		$pluralized = Inflect::pluralize($property);
 		if ($this->$pluralized instanceof \TYPO3\Flow\Persistence\LazyLoadingProxy) {
@@ -80,7 +94,7 @@ trait GettersSetters {
 		return $this->$pluralized->contains($value);
 	}
 
-	public function _remove($name,$value){
+	public function _remove($name, $value){
 		$property = $this->getPropertyName(substr($name,3));
 		if(!property_exists(get_class($this),$property))
 			throw new \Exception('The Property '.$property.' you are trying to set isn\'t defined in this class '.get_class($this).".");
