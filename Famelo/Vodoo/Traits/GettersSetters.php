@@ -78,7 +78,7 @@ trait GettersSetters {
 
 		if(!property_exists(get_class($this),$property))
 			throw new \Exception('The Property '.$property.' you are trying to add isn\'t defined in this class.');
-		if ($this->$property instanceof \Doctrine\ODM\MongoDB\PersistentCollection) {
+		if ($this->$property instanceof \Doctrine\Common\Collections\Collection) {
 			$this->$property->add($value);
 		} else {
 			array_push($this->$property, $value);
